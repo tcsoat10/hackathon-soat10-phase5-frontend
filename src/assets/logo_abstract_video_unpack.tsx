@@ -1,0 +1,26 @@
+import React from 'react';
+
+const Logo: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg
+        width="120"
+        height="120"
+        viewBox="0 0 64 64"
+        xmlns="http://www.w3.org/2000/svg"
+        className="mb-6"
+        role="img"
+        aria-label="Logo Abstract Video Unpack"
+        {...props}
+    >
+        <title>Logo Abstract Video Unpack</title>
+        <defs>
+            <linearGradient id="grad-vu" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#a78bfa" />
+                <stop offset="100%" stopColor="#7c3aed" />
+            </linearGradient>
+        </defs>
+        <path d="M4 8 L32 24 L60 8 V 32 L32 48 L4 32 Z" fill="url(#grad-vu)" />
+        <path d="M4 32 L32 48 L60 32 L32 16 Z" fill="#6d28d9" />
+    </svg>
+);
+
+export default Logo;
