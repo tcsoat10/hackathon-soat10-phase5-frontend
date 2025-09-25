@@ -1,5 +1,4 @@
 export default async function handler(req: any, res: any) {
-  // Pega URL do backend da env
   const backend = process.env.BACKEND_URL;
   
   console.log('=== PROXY DEBUG ===');
@@ -15,14 +14,12 @@ export default async function handler(req: any, res: any) {
     });
   }
 
-  // Monta URL final
   const path = req.query.path ? req.query.path.join('/') : '';
   const url = `${backend}/api/${path}`;
   
   console.log('URL final:', url);
 
   try {
-    // Faz o request para o backend
     const response = await fetch(url, {
       method: req.method,
       headers: {
