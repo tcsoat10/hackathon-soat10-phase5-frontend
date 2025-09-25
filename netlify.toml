@@ -2,11 +2,22 @@
   publish = "dist"
   command = "npm run build"
 
-[[redirects]]
+[build.environment]
+  NODE_VERSION = "18"
+  VITE_API_BASE_URL = "/"
+
+# Configuração de produção
+[context.production]
+[[context.production.redirects]]
   from = "/api/*"
   to = "http://nerdplayer.tplinkdns.com:8090/api/:splat"
   status = 200
   force = true
 
-[build.environment]
-  NODE_VERSION = "18"
+# Configuração de preview/branch
+[context.branch-deploy]
+[[context.branch-deploy.redirects]]
+  from = "/api/*"
+  to = "http://localhost:8000/api/:splat"
+  status = 200
+  force = true
