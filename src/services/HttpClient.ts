@@ -30,7 +30,8 @@ export class HttpClient implements IHttpClient {
       isDev,
       envBase,
       effectiveBaseURL,
-      VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL
+      VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+      BACKEND_URL: import.meta.env.BACKEND_URL,
     });
 
     this.client = axios.create({
