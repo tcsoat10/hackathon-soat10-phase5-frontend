@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/proxy/[...path].ts": {
-      "runtime": "@vercel/node@3"
+      "runtime": "@vercel/node@18.x"
     }
   },
   "rewrites": [
