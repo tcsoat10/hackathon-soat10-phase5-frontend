@@ -5,30 +5,15 @@
 [build.environment]
   NODE_VERSION = "18"
 
-# Configuração de produção
-[context.production]
-[[context.production.redirects]]
+# Proxy para API (deve vir ANTES do SPA fallback)
+[[redirects]]
   from = "/api/*"
   to = "http://nerdplayer.tplinkdns.com:8090/api/:splat"
   status = 200
   force = true
 
 # SPA fallback - IMPORTANTE para React Router
-[[context.production.redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-# Configuração de preview/branch
-[context.branch-deploy]
-[[context.branch-deploy.redirects]]
-  from = "/api/*"
-  to = "http://localhost:8000/api/:splat"
-  status = 200
-  force = true
-
-# SPA fallback para preview
-[[context.branch-deploy.redirects]]
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
