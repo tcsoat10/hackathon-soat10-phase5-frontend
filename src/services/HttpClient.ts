@@ -15,9 +15,13 @@ export interface IHttpClient {
 export class HttpClient implements IHttpClient {
   private client: AxiosInstance;
 
-  constructor(baseURL: string = import.meta.env.VITE_API_BASE_URL || '/') {
+  constructor(baseURL?: string) {
+    const envBase = baseURL ?? import.meta.env.VITE_API_BASE_URL ?? '/';
+    const isDev = import.meta.env.MODE === 'development' || import.meta.env.DEV === true;
+    const effectiveBaseURL = isDev ? '/' : envBase;
+
     this.client = axios.create({
-      baseURL,
+      baseURL: effectiveBaseURL,
       timeout: 60000 * 5, // 5 minutes 
       headers: {
         'Content-Type': 'application/json',

@@ -59,6 +59,6 @@ export class VideoService implements IVideoService {
     if (error instanceof Error) {
       return error;
     }
-    return new Error('An unknown error occurred with video service');
+    return new Error('Ocorreu um erro desconhecido no serviço de vídeo');
   }
 }
