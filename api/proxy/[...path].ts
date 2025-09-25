@@ -1,7 +1,7 @@
 export default async function handler(req: any, res: any) {
   const backend = process.env.BACKEND_URL;
   
-  console.log('=== PROXY DEBUG ===');
+  console.log('==== PROXY DEBUG ====');
   console.log('BACKEND_URL:', backend);
   console.log('Method:', req.method);
   console.log('Query path:', req.query.path);
