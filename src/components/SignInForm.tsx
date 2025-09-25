@@ -9,8 +9,11 @@ import type { SignInRequest } from '../types';
 import Logo from '../assets/logo_abstract_video_unpack';
 
 const schema = yup.object({
-  username: yup.string().required('Username is required'),
-  password: yup.string().required('Password is required').min(6, 'Password must be at least 6 characters'),
+  username: yup.string().required('Usuário é obrigatório'),
+  password: yup
+    .string()
+    .required('Senha é obrigatória')
+    .min(6, 'A senha deve ter no mínimo 6 caracteres'),
 });
 
 const SignInForm: React.FC = () => {

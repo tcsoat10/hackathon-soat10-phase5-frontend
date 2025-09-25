@@ -69,7 +69,7 @@ const SignUpForm: React.FC = () => {
                 {...register('person.name')}
                 type="text"
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Your full name"
+                placeholder="Seu nome completo"
               />
               {errors.person?.name && (
                 <p className="mt-1 text-sm text-red-600">{errors.person.name.message}</p>
@@ -84,7 +84,7 @@ const SignUpForm: React.FC = () => {
                 {...register('person.email')}
                 type="email"
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="your.email@example.com"
+                placeholder="seu.email@exemplo.com"
               />
               {errors.person?.email && (
                 <p className="mt-1 text-sm text-red-600">{errors.person.email.message}</p>
@@ -132,7 +132,7 @@ const SignUpForm: React.FC = () => {
                 {...register('user.name')}
                 type="text"
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Choose a username"
+                placeholder="Escolha um nome de usuário"
               />
               {errors.user?.name && (
                 <p className="mt-1 text-sm text-red-600">{errors.user.name.message}</p>
@@ -147,7 +147,7 @@ const SignUpForm: React.FC = () => {
                 {...register('user.password')}
                 type="password"
                 className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Choose a secure password"
+                placeholder="Escolha uma senha segura"
               />
               {errors.user?.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.user.password.message}</p>
