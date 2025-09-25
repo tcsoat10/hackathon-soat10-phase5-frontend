@@ -4,7 +4,6 @@
 
 [build.environment]
   NODE_VERSION = "18"
-  VITE_API_BASE_URL = "/"
 
 # Configuração de produção
 [context.production]
