@@ -16,9 +16,22 @@ export class HttpClient implements IHttpClient {
   private client: AxiosInstance;
 
   constructor(baseURL?: string) {
+    // Use explicit param, otherwise get from env
     const envBase = baseURL ?? import.meta.env.VITE_API_BASE_URL ?? '/';
+    
+    // For development: always use '/' to enable Vite proxy
+    // For production: use envBase (should be '/' to use Vercel proxy)
     const isDev = import.meta.env.MODE === 'development' || import.meta.env.DEV === true;
     const effectiveBaseURL = isDev ? '/' : envBase;
+
+    // Debug logging (remove in production if needed)
+    console.log('HttpClient config:', {
+      mode: import.meta.env.MODE,
+      isDev,
+      envBase,
+      effectiveBaseURL,
+      VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL
+    });
 
     this.client = axios.create({
       baseURL: effectiveBaseURL,
