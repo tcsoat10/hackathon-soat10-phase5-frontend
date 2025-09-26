@@ -84,7 +84,7 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
     return (
       <div className="flex justify-center items-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Loading videos...</span>
+        <span className="ml-2 text-gray-600">Carregando vídeos...</span>
       </div>
     );
   }
@@ -93,8 +93,8 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
     return (
       <div className="text-center py-12">
         <div className="text-gray-500">
-          <p className="text-lg">No videos uploaded yet</p>
-          <p className="text-sm mt-2">Upload your first video to get started!</p>
+          <p className="text-lg">Ainda não há vídeos enviados</p>
+            <p className="text-sm mt-2">Faça o upload do seu primeiro vídeo para começar!</p>
         </div>
       </div>
     );
@@ -103,14 +103,14 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold text-gray-900">Video Processing Jobs</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Tarefas de processamento de vídeo</h2>
         <button
           onClick={loadVideos}
           disabled={isLoading}
           className="btn-primary flex items-center"
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
+          Atualizar
         </button>
       </div>
 
@@ -149,12 +149,12 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
                     </div>
                     <div className="flex items-center">
                       <Calendar className="w-4 h-4 mr-1" />
-                      <span>Created: {formatDate(video.created_at)}</span>
+                      <span>Criado em: {formatDate(video.created_at)}</span>
                     </div>
                     {video.updated_at !== video.created_at && (
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-1" />
-                        <span>Updated: {formatDate(video.updated_at)}</span>
+                        <span>Atualizado em: {formatDate(video.updated_at)}</span>
                       </div>
                     )}
                   </div>

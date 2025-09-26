@@ -43,6 +43,12 @@ export interface VideoJob {
   filetype?: string;
 }
 
+export interface ZipFileInfo {
+  file_url: string;
+  job_ref: string;
+  client_identification: string;
+}
+
 export interface VideoUploadResponse {
   id: string;
   job_ref: string;
