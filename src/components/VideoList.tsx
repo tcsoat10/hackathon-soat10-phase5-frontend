@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Download, RefreshCw, Calendar, User } from 'lucide-react';
+import { Download, RefreshCw, Calendar, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { IVideoService } from '../services/VideoService';
 import type { VideoJob } from '../types';
@@ -13,6 +13,8 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
   const [videos, setVideos] = useState<VideoJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [downloadingJobs, setDownloadingJobs] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
 
   const loadVideos = useCallback(async () => {
     try {
@@ -31,6 +33,10 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
     loadVideos();
   }, [loadVideos, refreshTrigger]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [videos.length]);
+
   const handleDownload = async (jobRef: string, filename?: string) => {
     setDownloadingJobs(prev => new Set(prev).add(jobRef));
     
@@ -43,8 +49,7 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
       link.download = filename?.split('.').slice(0, -1).join('.') || `video_${jobRef}.zip`;
       document.body.appendChild(link);
       link.click();
-      
-      // Cleanup
+
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
@@ -78,6 +83,27 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
       default:
         return 'status-badge bg-gray-100 text-gray-800';
     }
+  };
+
+  const totalPages = Math.ceil(videos.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentVideos = videos.slice(startIndex, endIndex);
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
   };
 
   if (isLoading) {
@@ -116,7 +142,7 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
 
       <div className="card overflow-hidden animate-fadeIn">
         <ul className="divide-y divide-gray-200">
-          {videos.map((video) => (
+          {currentVideos.map((video) => (
             <li key={video.id} className="px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
@@ -185,6 +211,50 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+        <div className="flex justify-between items-center w-full">
+          <div className="text-sm text-gray-700">
+            Mostrando <span className="font-medium">{startIndex + 1}</span> a{' '}
+            <span className="font-medium">{Math.min(endIndex, videos.length)}</span> de{' '}
+            <span className="font-medium">{videos.length}</span> resultados
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={goToPreviousPage}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+
+            <div className="flex items-center space-x-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => goToPage(page)}
+                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                    page === currentPage
+                      ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                      : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            
+            <button
+              onClick={goToNextPage}
+              disabled={currentPage === totalPages}
+              className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

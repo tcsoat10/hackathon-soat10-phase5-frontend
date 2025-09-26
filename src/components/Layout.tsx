@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { LogOut, Upload, List } from 'lucide-react';
 import Logo from '../assets/logo_abstract_video_unpack';
@@ -11,13 +12,14 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 animate-slideInRight">
-            <div className="flex items-center">
+            <div className="flex items-center cursor-pointer" onClick={() => navigate('/dashboard')}>
               <Logo className="h-8 w-8 mr-2" />
               <h1 className="text-xl font-semibold text-gray-900">
                 Video Unpack
