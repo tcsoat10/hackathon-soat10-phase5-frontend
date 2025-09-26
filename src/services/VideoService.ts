@@ -49,6 +49,28 @@ export class VideoService implements IVideoService {
     try {
       const params = new URLSearchParams({ job_ref: jobRef });
       const response = await this.httpClient.downloadFile(`/api/v1/zip/download?${params.toString()}`);
+
+      /*
+        Bloqueio pro CORS - É a solução ideal mas não temos permissão de liberar a url no bucket.
+        [
+          {
+              "AllowedHeaders": [
+                  "*"
+              ],
+              "AllowedMethods": [
+                  "GET"
+              ],
+              "AllowedOrigins": [
+                  "https://video-unpack.netlify.app",
+                  "http://localhost:5173"
+              ],
+              "ExposeHeaders": []
+          }
+        ]
+      */
+      // const zipFileInfo = await this.httpClient.get<ZipFileInfo>(`/api/v1/zip?${params.toString()}`);
+      // const response = await this.httpClient.downloadFile(zipFileInfo.file_url);
+ 
       return response;
     } catch (error) {
       throw this.handleError(error);
