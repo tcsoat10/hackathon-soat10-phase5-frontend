@@ -8,6 +8,7 @@ export interface IAuthService {
   signOut(): void;
   getToken(): string | null;
   isAuthenticated(): boolean;
+  cancelAllRequests(): void;
 }
 
 export class AuthService implements IAuthService {
@@ -38,7 +39,12 @@ export class AuthService implements IAuthService {
   }
 
   signOut(): void {
+    this.httpClient.cancelAllRequests();
     this.httpClient.removeAuthToken();
+  }
+
+  cancelAllRequests(): void {
+    this.httpClient.cancelAllRequests();
   }
 
   getToken(): string | null {

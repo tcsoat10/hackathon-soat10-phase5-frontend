@@ -137,7 +137,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({ videoService, onUploadSuccess
                 />
               </label>
               <p className="mt-1 text-xs text-gray-500">
-                MP4, AVI, MOV, MKV up to 100MB
+                MP4, AVI, MOV, MKV up to 200MB
               </p>
             </div>
           </div>

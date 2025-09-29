@@ -5,14 +5,12 @@
 [build.environment]
   NODE_VERSION = "18"
 
-# Proxy para API (deve vir ANTES do SPA fallback)
 [[redirects]]
   from = "/api/*"
-  to = "http://nerdplayer.tplinkdns.com:8090/api/:splat"
+  to = "ac0a737af0fe84023b762323b349e9f4-1793138016.us-east-1.elb.amazonaws.com/api/:splat"
   status = 200
   force = true
 
-# SPA fallback - IMPORTANTE para React Router
 [[redirects]]
   from = "/*"
   to = "/index.html"

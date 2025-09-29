@@ -1,11 +1,12 @@
 import type { IHttpClient } from './HttpClient';
-import type { VideoJob, VideoUploadResponse } from '../types';
+import type { VideoJob, VideoUploadResponse, PaginatedVideoResponse } from '../types';
 
 // Interface for video service following Interface Segregation Principle
 export interface IVideoService {
   uploadVideo(file: File): Promise<VideoUploadResponse>;
-  getVideoJobs(): Promise<VideoJob[]>;
+  getVideoJobs(page: number, limit: number): Promise<PaginatedVideoResponse>;
   downloadVideo(jobRef: string): Promise<Blob>;
+  cancelAllRequests(): void;
 }
 
 export class VideoService implements IVideoService {
@@ -36,10 +37,49 @@ export class VideoService implements IVideoService {
     }
   }
 
-  async getVideoJobs(): Promise<VideoJob[]> {
+  async getVideoJobs(page: number, limit: number): Promise<PaginatedVideoResponse> {
     try {
-      const response = await this.httpClient.get<VideoJob[]>('/api/v1/videos');
-      return response;
+      const urlParams = new URLSearchParams();
+      urlParams.append('page', page.toString());
+      urlParams.append('limit', limit.toString());
+      const url = `/api/v1/videos?${urlParams.toString()}`;
+
+      const response = await this.httpClient.get<PaginatedVideoResponse | VideoJob[]>(url);
+
+      if (response && typeof response === 'object' && 'items' in response) {
+        return response as PaginatedVideoResponse;
+      }
+
+      if (response && typeof response === 'object' && 'data' in response) {
+        const oldResponse = response as unknown as { data: VideoJob[], total: number, page: number, limit: number };
+        return {
+          items: oldResponse.data,
+          total: oldResponse.total,
+          page: oldResponse.page,
+          limit: oldResponse.limit
+        };
+      }
+
+      if (Array.isArray(response)) {
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        const paginatedData = response.slice(startIndex, endIndex);
+        
+        return {
+          items: paginatedData,
+          total: response.length,
+          page: page,
+          limit: limit
+        };
+      }
+
+      return {
+        items: [],
+        total: 0,
+        page: page,
+        limit: limit
+      };
+      
     } catch (error) {
       throw this.handleError(error);
     }
@@ -75,6 +115,10 @@ export class VideoService implements IVideoService {
     } catch (error) {
       throw this.handleError(error);
     }
+  }
+
+  cancelAllRequests(): void {
+    this.httpClient.cancelAllRequests();
   }
 
   private handleError(error: unknown): Error {

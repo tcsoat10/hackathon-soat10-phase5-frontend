@@ -10,17 +10,15 @@ export interface IHttpClient {
   setAuthToken(token: string): void;
   removeAuthToken(): void;
   downloadFile(url: string, config?: AxiosRequestConfig): Promise<Blob>;
+  cancelAllRequests(): void;
 }
 
 export class HttpClient implements IHttpClient {
   private client: AxiosInstance;
+  private activeRequests: Map<string, AbortController> = new Map();
 
   constructor(baseURL?: string) {
-    // Use explicit param, otherwise get from env
     const envBase = baseURL ?? import.meta.env.VITE_API_BASE_URL ?? '/';
-    
-    // For development: always use '/' to enable Vite proxy
-    // For production: use envBase (should be '/' to use Vercel proxy)
     const isDev = import.meta.env.MODE === 'development' || import.meta.env.DEV === true;
     const effectiveBaseURL = isDev ? '/' : envBase;
 
@@ -70,23 +68,67 @@ export class HttpClient implements IHttpClient {
   }
 
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.get<T>(url, config);
-    return response.data;
+    const requestId = this.generateRequestId();
+    const controller = new AbortController();
+    this.activeRequests.set(requestId, controller);
+
+    try {
+      const response = await this.client.get<T>(url, {
+        ...config,
+        signal: controller.signal,
+      });
+      return response.data;
+    } finally {
+      this.activeRequests.delete(requestId);
+    }
   }
 
   async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.post<T>(url, data, config);
-    return response.data;
+    const requestId = this.generateRequestId();
+    const controller = new AbortController();
+    this.activeRequests.set(requestId, controller);
+
+    try {
+      const response = await this.client.post<T>(url, data, {
+        ...config,
+        signal: controller.signal,
+      });
+      return response.data;
+    } finally {
+      this.activeRequests.delete(requestId);
+    }
   }
 
   async put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.put<T>(url, data, config);
-    return response.data;
+    const requestId = this.generateRequestId();
+    const controller = new AbortController();
+    this.activeRequests.set(requestId, controller);
+
+    try {
+      const response = await this.client.put<T>(url, data, {
+        ...config,
+        signal: controller.signal,
+      });
+      return response.data;
+    } finally {
+      this.activeRequests.delete(requestId);
+    }
   }
 
   async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.client.delete<T>(url, config);
-    return response.data;
+    const requestId = this.generateRequestId();
+    const controller = new AbortController();
+    this.activeRequests.set(requestId, controller);
+
+    try {
+      const response = await this.client.delete<T>(url, {
+        ...config,
+        signal: controller.signal,
+      });
+      return response.data;
+    } finally {
+      this.activeRequests.delete(requestId);
+    }
   }
 
   setAuthToken(token: string): void {
@@ -100,10 +142,30 @@ export class HttpClient implements IHttpClient {
   }
 
   async downloadFile(url: string, config?: AxiosRequestConfig): Promise<Blob> {
-    const response = await this.client.get(url, {
-      ...config,
-      responseType: 'blob',
+    const requestId = this.generateRequestId();
+    const controller = new AbortController();
+    this.activeRequests.set(requestId, controller);
+
+    try {
+      const response = await this.client.get(url, {
+        ...config,
+        responseType: 'blob',
+        signal: controller.signal,
+      });
+      return response.data;
+    } finally {
+      this.activeRequests.delete(requestId);
+    }
+  }
+
+  cancelAllRequests(): void {
+    this.activeRequests.forEach((controller) => {
+      controller.abort();
     });
-    return response.data;
+    this.activeRequests.clear();
+  }
+
+  private generateRequestId(): string {
+    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 }
