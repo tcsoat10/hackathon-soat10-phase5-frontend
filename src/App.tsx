@@ -19,7 +19,7 @@ const videoService = new VideoService(httpClient);
 function App() {
   return (
     <Router>
-      <AuthProvider authService={authService}>
+      <AuthProvider authService={authService} videoService={videoService}>
         <div className="App">
           <Toaster
             position="top-right"

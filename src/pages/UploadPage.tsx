@@ -16,7 +16,7 @@ const UploadPage: React.FC<UploadPageProps> = ({ videoService }) => {
   };
 
   return (
-    <Layout>
+    <Layout videoService={videoService}>
       <div className="px-4 py-6 sm:px-0">
         <div className="space-y-8">
           <div className="text-center animate-slideInUp">

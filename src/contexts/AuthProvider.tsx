@@ -3,19 +3,20 @@ import type { ReactNode } from 'react';
 import { AuthContext } from './AuthContext';
 import type { AuthContextType } from './AuthContext';
 import type { IAuthService } from '../services/AuthService';
+import type { IVideoService } from '../services/VideoService';
 import type { AuthResponse, SignInRequest, SignUpRequest } from '../types';
 
 interface AuthProviderProps {
   children: ReactNode;
   authService: IAuthService;
+  videoService?: IVideoService;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children, authService }) => {
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children, authService, videoService }) => {
   const [user, setUser] = useState<AuthResponse['user'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already authenticated on app load
     const checkAuth = () => {
       console.log('Checking auth on app load...');
       const isAuth = authService.isAuthenticated();
@@ -118,6 +119,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, authServic
   };
 
   const signOut = (): void => {
+    authService.cancelAllRequests();
+    if (videoService) {
+      videoService.cancelAllRequests();
+    }
     authService.signOut();
     setUser(null);
   };

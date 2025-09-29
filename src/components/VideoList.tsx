@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Download, RefreshCw, Calendar, User, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { IVideoService } from '../services/VideoService';
 import type { VideoJob } from '../types';
+import  CircularSpinner from '../assets/circular_spinner_loading';
 
 interface VideoListProps {
   videoService: IVideoService;
@@ -15,33 +16,91 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
   const [downloadingJobs, setDownloadingJobs] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
 
-  const loadVideos = useCallback(async () => {
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const downloadControllersRef = useRef<Map<string, AbortController>>(new Map());
+
+  const loadVideos = useCallback(async (page?: number) => {
+    // Cancelar requisição anterior se existir
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       setIsLoading(true);
-      const videoJobs = await videoService.getVideoJobs();
-      setVideos(videoJobs);
+      const pageToLoad = page || currentPage;
+      const response = await videoService.getVideoJobs(pageToLoad, itemsPerPage);
+
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      setVideos(response.items || []);
+      setTotalPages(Math.ceil((response.total || 0) / (response.limit || itemsPerPage)));
+      setTotalItems(response.total || 0);
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
+
+      if (controller.signal.aborted) {
+        return;
+      }
+      
       const message = error instanceof Error ? error.message : 'Failed to load videos';
       toast.error(message);
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted) { setIsLoading(false); }
     }
-  }, [videoService]);
+  }, [videoService, currentPage, itemsPerPage]);
 
   useEffect(() => {
     loadVideos();
   }, [loadVideos, refreshTrigger]);
 
+  const refreshCurrentPage = useCallback(() => {
+    downloadControllersRef.current.forEach((controller) => {
+      controller.abort();
+    });
+    downloadControllersRef.current.clear();
+    setDownloadingJobs(new Set());
+
+    loadVideos(currentPage);
+  }, [loadVideos, currentPage]);
+
   useEffect(() => {
-    setCurrentPage(1);
-  }, [videos.length]);
+    const currentAbortController = abortControllerRef.current;
+    const currentDownloadControllers = downloadControllersRef.current;
+    
+    return () => {
+      if (currentAbortController) {
+        currentAbortController.abort();
+      }
+
+      currentDownloadControllers.forEach((controller) => {
+        controller.abort();
+      });
+      currentDownloadControllers.clear();
+
+      videoService.cancelAllRequests();
+    };
+  }, [videoService]);
 
   const handleDownload = async (jobRef: string, filename?: string) => {
+    const controller = new AbortController();
+    downloadControllersRef.current.set(jobRef, controller);
+    
     setDownloadingJobs(prev => new Set(prev).add(jobRef));
     
     try {
       const blob = await videoService.downloadVideo(jobRef);
+
+      if (controller.signal.aborted) { return; }
 
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -55,9 +114,12 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
       
       toast.success('Download started successfully!');
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') { return; }
+      
       const message = error instanceof Error ? error.message : 'Failed to download video';
       toast.error(message);
     } finally {
+      downloadControllersRef.current.delete(jobRef);
       setDownloadingJobs(prev => {
         const newSet = new Set(prev);
         newSet.delete(jobRef);
@@ -76,7 +138,7 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
         return 'status-badge status-completed';
       case 'processing':
         return 'status-badge status-processing';
-      case 'failed':
+      case 'error':
         return 'status-badge status-failed';
       case 'pending':
         return 'status-badge status-pending';
@@ -85,25 +147,29 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
     }
   };
 
-  const totalPages = Math.ceil(videos.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentVideos = videos.slice(startIndex, endIndex);
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+  const currentVideos = videos || []; // Já vem paginado do backend, fallback para array vazio
 
   const goToNextPage = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      loadVideos(nextPage);
     }
   };
 
   const goToPreviousPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+      const prevPage = currentPage - 1;
+      setCurrentPage(prevPage);
+      loadVideos(prevPage);
     }
   };
 
   const goToPage = (page: number) => {
     setCurrentPage(page);
+    loadVideos(page);
   };
 
   if (isLoading) {
@@ -115,7 +181,7 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
     );
   }
 
-  if (videos.length === 0) {
+  if (!videos || videos.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="text-gray-500">
@@ -131,7 +197,7 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold text-gray-900">Tarefas de processamento de vídeo</h2>
         <button
-          onClick={loadVideos}
+          onClick={refreshCurrentPage}
           disabled={isLoading}
           className="btn-primary flex items-center"
         >
@@ -188,23 +254,27 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
 
                 <div className="flex items-center space-x-2">
                   {video.status.toLowerCase() === 'completed' && (
-                    <button
-                      onClick={() => handleDownload(video.job_ref, video.filename)}
-                      disabled={downloadingJobs.has(video.job_ref)}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md inline-flex items-center transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {downloadingJobs.has(video.job_ref) ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Downloading...
-                        </>
-                      ) : (
-                        <>
-                          <Download className="w-4 h-4 mr-2" />
-                          Download
-                        </>
-                      )}
-                    </button>
+                    <>
+                      <button
+                        onClick={() => handleDownload(video.job_ref, video.filename)}
+                        disabled={downloadingJobs.has(video.job_ref)}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md inline-flex items-center transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {downloadingJobs.has(video.job_ref) ? (
+                          <>
+                            {/* <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div> */}
+                            {/* circular rounded animate spin */}
+                            <CircularSpinner className="w-4 h-4 mr-2" />
+                            Downloading...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="w-4 h-4 mr-2" />
+                            Download
+                          </>
+                        )}
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -217,8 +287,8 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
         <div className="flex justify-between items-center w-full">
           <div className="text-sm text-gray-700">
             Mostrando <span className="font-medium">{startIndex + 1}</span> a{' '}
-            <span className="font-medium">{Math.min(endIndex, videos.length)}</span> de{' '}
-            <span className="font-medium">{videos.length}</span> resultados
+            <span className="font-medium">{endIndex}</span> de{' '}
+            <span className="font-medium">{totalItems}</span> resultados
           </div>
           
           <div className="flex items-center space-x-2">
@@ -231,7 +301,7 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
             </button>
 
             <div className="flex items-center space-x-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              {Array.from({ length: Math.max(0, totalPages || 0) }, (_, i) => i + 1).map((page) => (
                 <button
                   key={page}
                   onClick={() => goToPage(page)}

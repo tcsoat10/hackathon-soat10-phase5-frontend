@@ -64,3 +64,10 @@ export interface ApiError {
   message: string;
   status?: number;
 }
+
+export interface PaginatedVideoResponse {
+  items: VideoJob[];
+  total: number;
+  page: number;
+  limit: number;
+}

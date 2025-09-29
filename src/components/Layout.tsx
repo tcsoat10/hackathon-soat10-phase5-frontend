@@ -2,17 +2,21 @@ import React from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useRequestCancellation } from '../hooks/useRequestCancellation';
 import { LogOut, Upload, List } from 'lucide-react';
 import Logo from '../assets/logo_abstract_video_unpack';
-
+import type { IVideoService } from '../services/VideoService';
 
 interface LayoutProps {
   children: ReactNode;
+  videoService?: IVideoService;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC<LayoutProps> = ({ children, videoService }) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  useRequestCancellation({ videoService });
 
   return (
     <div className="min-h-screen bg-gray-50">

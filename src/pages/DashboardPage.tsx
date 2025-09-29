@@ -11,7 +11,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ videoService }) => {
   const [refreshTrigger] = useState(0);
 
   return (
-    <Layout>
+    <Layout videoService={videoService}>
       <div className="px-4 py-6 sm:px-0">
         <div className="card p-8 animate-slideInUp">
           <div className="text-center mb-8">
