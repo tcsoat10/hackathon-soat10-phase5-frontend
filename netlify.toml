@@ -3,13 +3,21 @@
   command = "npm run build"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "22"
 
 [[redirects]]
   from = "/api/*"
-  to = "ac0a737af0fe84023b762323b349e9f4-1793138016.us-east-1.elb.amazonaws.com/api/:splat"
+  to = "http://ac0a737af0fe84023b762323b349e9f4-1793138016.us-east-1.elb.amazonaws.com/api/:splat"
   status = 200
   force = true
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
 
 [[redirects]]
   from = "/*"
