@@ -119,3 +119,9 @@ A aplicação se comunica com as seguintes rotas do backend:
 - **React Hot Toast** - Notificações toast
 - **Tailwind CSS** - Framework CSS utilitário
 - **Lucide React** - Ícones
+
+## Screenshots
+
+
+
+![alt text](public/screenshot.png)
