@@ -37,6 +37,7 @@ export interface VideoJob {
   job_ref: string;
   client_identification: string;
   status: string;
+  detail: string;
   created_at: string;
   updated_at: string;
   filename?: string;

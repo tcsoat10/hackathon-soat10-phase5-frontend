@@ -140,6 +140,8 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
         return 'status-badge status-processing';
       case 'error':
         return 'status-badge status-failed';
+      case 'rejected':
+        return 'status-badge status-failed'
       case 'pending':
         return 'status-badge status-pending';
       default:
@@ -218,6 +220,7 @@ const VideoList: React.FC<VideoListProps> = ({ videoService, refreshTrigger }) =
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
                           video.status
                         )}`}
+                        title={video.detail || video.status}
                       >
                         {video.status}
                       </span>
